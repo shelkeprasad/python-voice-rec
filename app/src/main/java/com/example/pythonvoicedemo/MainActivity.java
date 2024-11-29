@@ -7,6 +7,8 @@ import androidx.core.content.ContextCompat;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -45,26 +47,37 @@ public class MainActivity extends AppCompatActivity {
     private MediaRecorder mediaRecorder;
     private String filePath;
     private ApiService apiService;
-    private EditText editText, editTextid;
+    private EditText editText, editTextid,editTextIp;
     private boolean isRecording = false;
     private static final int SAMPLE_RATE = 16000;
     private static final int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
     private Uri audioUri;
     private Boolean isConversion = false;
+    private static final String PREF_NAME = "MyAppPrefs";
+    private static final String KEY_BASE_URL = "base_url";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         requestPermissions();
-        apiService = ApiClient.getClient().create(ApiService.class);
+        apiService = ApiClient.getClient(this).create(ApiService.class);
+
         editText = findViewById(R.id.edittext);
         editTextid = findViewById(R.id.edit_text_id);
+        editTextid = findViewById(R.id.edit_text_id);
+        editTextIp = findViewById(R.id.edt_ip);
+
 
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new
                     String[]{Manifest.permission.RECORD_AUDIO}, REQUEST_CODE_RECORD_AUDIO);
+        }
+        SharedPreferences sharedPreference = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        String baseUrl = sharedPreference.getString(KEY_BASE_URL, "");
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            Toast.makeText(this, "please set ip address .", Toast.LENGTH_LONG).show();
         }
 
         findViewById(R.id.btnStartRecording).setOnClickListener(v -> {
@@ -98,6 +111,19 @@ public class MainActivity extends AppCompatActivity {
         });
         findViewById(R.id.btnRetrain).setOnClickListener(v -> {
            retrainModel();
+        });
+        findViewById(R.id.btnSubmit).setOnClickListener(v -> {
+            String ipAddress = editTextIp.getText().toString().trim();
+            if (ipAddress.isEmpty()) {
+                editTextIp.setError("Please enter an IP address");
+                return;
+            }
+            SharedPreferences sharedPreferences = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString(KEY_BASE_URL, ipAddress);
+            editor.apply();
+            Toast.makeText(this, "IP Address saved successfully.", Toast.LENGTH_SHORT).show();
+
         });
     }
 
@@ -245,7 +271,7 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Call<ResponseBody> call, Throwable t) {
-
+                    Toast.makeText(MainActivity.this, "fail register", Toast.LENGTH_SHORT).show();
                     t.printStackTrace();
                     MainActivity.this.filePath = null;
                 }
@@ -321,7 +347,6 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
                     try {
-                        // Process the server's response
                         String result = response.body().string();
                         Toast.makeText(MainActivity.this, "Model retrained successfully: " + result, Toast.LENGTH_SHORT).show();
                     } catch (IOException e) {

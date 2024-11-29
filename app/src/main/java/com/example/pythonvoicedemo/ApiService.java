@@ -9,18 +9,18 @@ import retrofit2.http.POST;
 import retrofit2.http.Part;
 
 public interface ApiService {
-    @POST("retrain")
+    @POST("/retrain")
     Call<ResponseBody> retrainModel();
 
     @Multipart
-    @POST("register")
+    @POST("/register")
     Call<ResponseBody> registerSpeaker(
             @Part MultipartBody.Part file,
             @Part("speaker_id") RequestBody speakerId
     );
 
     @Multipart
-    @POST("recognize")
+    @POST("/recognize")
     Call<ResponseBody> recognizeSpeaker(
             @Part MultipartBody.Part file
     );

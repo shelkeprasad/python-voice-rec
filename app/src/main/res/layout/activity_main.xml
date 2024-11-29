@@ -49,4 +49,17 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:text="Recognize Speaker" />
+
+    <EditText
+        android:id="@+id/edt_ip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:hint="http://192.168.11.111:5000"/>
+    <Button
+        android:id="@+id/btnSubmit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="submit" />
 </LinearLayout>
